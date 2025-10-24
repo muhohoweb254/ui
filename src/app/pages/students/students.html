@@ -1,0 +1,121 @@
+<div class="layout-wrapper">
+
+    <div class="flex justify-content-between align-items-center mb-4">
+        <p-button
+            severity="primary"
+            label="Add student"
+            icon="pi pi-plus"
+            (onClick)="openModal()">
+        </p-button>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <h5>Students Management</h5>
+            <p-table
+                [value]="students"
+                showGridlines
+                [totalRecords]="10"
+                [lazy]="true"
+                (onLazyLoad)="loadStudents($event)"
+                [paginator]="true"
+                [loading]="isLoading"
+                [rowsPerPageOptions]="[5, 10, 20, 50]"
+                [rows]="10">
+                <ng-template #header>
+                    <tr>
+                        <th>Name</th>
+                        <th>Admission No</th>
+                        <th>Course</th>
+                    </tr>
+                </ng-template>
+                <ng-template #body let-student>
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.admNo }}</td>
+                        <td>{{ student.course.name }}</td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+
+<p-dialog header="Register Student" [modal]="true" [(visible)]="visible" [style]="{ width: '40rem' }">
+    <form [formGroup]="studentForm" (ngSubmit)="registerStudent()">
+        <span class="p-text-secondary block mb-8">Enter student information.</span>
+
+        <!-- Full Name -->
+        <div class="flex items-center gap-4 mb-4">
+            <label for="name" class="font-semibold w-24">Name</label>
+            <div class="flex-auto">
+                <input
+                    pInputText
+                    id="name"
+                    formControlName="name"
+                    placeholder="John Doe"
+                    class="w-full"
+                    autocomplete="off"
+                />
+                @if (isFieldInvalid('name')) {
+                    <small class="text-red-500 block mt-1">Student name is required</small>
+                }
+            </div>
+        </div>
+
+        <!-- Departments -->
+        <div class="flex items-center gap-4 mb-8">
+            <label for="course" class="font-semibold w-24">Department</label>
+            <div class="flex-auto">
+                <p-select
+                    id="department"
+                    (onChange)=selectDepartment($event)
+                    formControlName="department"
+                    appendTo="body"
+                    [options]="departments"
+                    optionLabel="name"
+                    placeholder="Select a Department"
+                    class="w-full"
+                />
+                @if (isFieldInvalid('course')) {
+                    <small class="text-red-500 block mt-1">Department is required</small>
+                }
+            </div>
+        </div>
+
+        @if (hasSelectedDepartment && courses.length!==0){
+            <!-- Courses  -->
+            <div class="flex items-center gap-4 mb-8">
+                <label for="course" class="font-semibold w-24">Course</label>
+                <div class="flex-auto">
+                    <p-select
+                        id="course"
+                        formControlName="course"
+                        appendTo="body"
+                        [options]="courses"
+                        optionLabel="name"
+                        placeholder="Select a Department"
+                        class="w-full"
+                    />
+                    @if (isFieldInvalid('course')) {
+                        <small class="text-red-500 block mt-1">Course is required</small>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Buttons -->
+        <div class="flex justify-end gap-2">
+            <p-button
+                label="Cancel"
+                severity="secondary"
+                (onClick)="visible = false"
+                type="button"
+            />
+            <p-button
+                label="Save"
+                type="submit"
+            />
+        </div>
+    </form>
+</p-dialog>

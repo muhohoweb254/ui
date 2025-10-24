@@ -79,6 +79,9 @@ export class LayoutService {
     private initialized = false;
 
     constructor() {
+        // Load saved theme preference before any effects run
+        this.loadSavedConfig();
+
         effect(() => {
             const config = this.layoutConfig();
             if (config) {
@@ -96,6 +99,38 @@ export class LayoutService {
 
             this.handleDarkModeTransition(config);
         });
+
+        // Save config whenever it changes
+        effect(() => {
+            const config = this.layoutConfig();
+            if (this.initialized && config) {
+                this.saveConfig(config);
+            }
+        });
+    }
+
+    private loadSavedConfig(): void {
+        try {
+            const savedConfig = localStorage.getItem('layoutConfig');
+            if (savedConfig) {
+                const parsed = JSON.parse(savedConfig);
+                this._config = { ...this._config, ...parsed };
+                this.layoutConfig.set(this._config);
+
+                // Apply dark mode immediately
+                this.toggleDarkMode(this._config);
+            }
+        } catch (error) {
+            console.error('Error loading layout config:', error);
+        }
+    }
+
+    private saveConfig(config: layoutConfig): void {
+        try {
+            localStorage.setItem('layoutConfig', JSON.stringify(config));
+        } catch (error) {
+            console.error('Error saving layout config:', error);
+        }
     }
 
     private handleDarkModeTransition(config: layoutConfig): void {

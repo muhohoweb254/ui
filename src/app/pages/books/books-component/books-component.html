@@ -1,0 +1,179 @@
+<!-- books.component.html -->
+<div class="books-container">
+    <div class="flex justify-content-between align-items-center mb-4">
+        <p-button
+            severity="primary"
+            label="Add book loan"
+            icon="pi pi-plus"
+            (onClick)="showDialog()">
+        </p-button>
+    </div>
+
+    <p-table
+        #dt1
+        [value]="books"
+        dataKey="isbn"
+        showGridlines
+        stripedRows
+        [paginator]="true"
+        [rows]="10"
+        [totalRecords]="totalElements"
+        [lazy]="true"
+        [loading]="isLoading"
+        (onLazyLoad)="loadBooks($event)"
+        [showCurrentPageReport]="true"
+        [globalFilterFields]="['title', 'author', 'isbn']"
+        currentPageReportTemplate="Showing {first} to {last} of {totalRecords} books"
+        [rowsPerPageOptions]="[5, 10, 20, 50]"
+        [(selection)]="selectedBooks"
+        class="p-datatable-striped">
+
+        <ng-template #header>
+            <tr>
+                <th style="width: 4rem"><p-tableHeaderCheckbox /></th>
+                <th style="min-width:15rem">
+                    <div class="flex items-center justify-between">
+                        Title
+                        <p-columnFilter type="text" field="title" display="menu" />
+                    </div>
+                </th>
+                <th style="min-width:15rem">
+                    <div class="flex items-center justify-between">
+                        Author
+                        <p-columnFilter type="text" field="author" display="menu" />
+                    </div>
+                </th>
+                <th style="min-width:12rem">
+                    <div class="flex items-center justify-between">
+                        ISBN
+                        <p-columnFilter type="text" field="isbn" display="menu" />
+                    </div>
+                </th>
+                <th style="min-width:10rem">
+                    <div class="flex items-center justify-between">
+                        Status
+                        <p-columnFilter field="borrowed" matchMode="equals" display="menu">
+                            <ng-template #filter let-filter="filterCallback">
+                                <p-select [ngModel]="selectedStatus" [options]="statuses" (onChange)="onStatusChange($event.value, filter)" placeholder="Select Status" class="w-full">
+                                    <ng-template let-option #item>
+                                        <p-tag [value]="option.label" [severity]="option.value ? 'danger' : 'success'"></p-tag>
+                                    </ng-template>
+                                </p-select>
+                            </ng-template>
+                        </p-columnFilter>
+                    </div>
+                </th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-book>
+            <tr>
+                <td>
+                    <p-tableCheckbox [value]="book" />
+                </td>
+                <td><strong>{{ book.title }}</strong></td>
+                <td>{{ book.author }}</td>
+                <td>
+                    <span style="margin-right: 1rem">{{ book.isbn }}</span>
+                    <p-popover #op>
+                        <ng-template #content>
+                            <small>Copied</small>
+                        </ng-template>
+                    </p-popover>
+                    <p-button (click)="op.toggle($event)" (onClick)="copy(book.isbn)" icon="pi pi-copy" class="w-1" severity="secondary"></p-button>
+                </td>
+                <td>
+                    <p-tag
+                        [value]="book.borrowed ? 'Borrowed' : 'Available'"
+                        [severity]="book.borrowed ? 'danger' : 'success'">
+                    </p-tag>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="5" class="text-center">
+                    <div class="p-4">
+                        <i class="pi pi-info-circle" style="font-size: 2rem; color: var(--text-color-secondary)"></i>
+                        <p class="mt-2 mb-0">No books found.</p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #loadingbody>
+            <tr>
+                <td colspan="5" class="text-center">
+                    <div class="p-4">
+                        <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
+                        <p class="mt-2 mb-0">Loading books...</p>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>
+
+<!-- Professional Add Book Modal -->
+
+<!-- Simple Form Modal -->
+<p-dialog [(visible)]="visible" [modal]="true" [style]="{ width: '28rem' }" header="Issue a book">
+    <form [formGroup]="bookForm" (ngSubmit)="issueBook()">
+
+        <div class="mb-4">
+            <label for="admNo" class="block mb-2 font-semibold">Admission No</label>
+            <p-inputmask
+                id="admNo"
+                formControlName="admNo"
+                mask="ADM9999"
+                placeholder="ADM0000"
+                styleClass="w-full"
+            />
+            @if (isFieldInvalid('admNo')) {
+                <small class="text-red-500">Admission number is required</small>
+            }
+        </div>
+
+        <div class="mb-4">
+            <label for="bookIsbn" class="block mb-2 font-semibold">Book ISBN</label>
+            <p-inputmask
+                id="bookIsbn"
+                formControlName="bookIsbn"
+                mask="9999999999999"
+                placeholder="Enter ISBN"
+                styleClass="w-full"
+            />
+            @if (isFieldInvalid('bookIsbn')) {
+                <small class="text-red-500">Book ISBN is required</small>
+            }
+        </div>
+
+        <div class="mb-4">
+            <label for="expectedDate" class="block mb-2 font-semibold">Return Date</label>
+            <p-date-picker
+                id="expectedDate"
+                formControlName="expectedDate"
+                appendTo="body"
+                [minDate]="minDate"
+                dateFormat="yy-mm-dd"
+                styleClass="w-full"
+            />
+            @if (isFieldInvalid('expectedDate')) {
+                <small class="text-red-500">Return date is required</small>
+            }
+        </div>
+
+        <div class="flex justify-content-end gap-2 mt-4">
+            <p-button
+                icon="pi pi-times"
+                label="Cancel"
+                severity="secondary"
+                [outlined]="true"
+                (click)="hideDialog()"
+                type="button"
+            />
+            <p-button type="submit" label="Issue book" icon="pi pi-user" [loading]="savingBook"  severity="primary"/>
+        </div>
+    </form>
+</p-dialog>
