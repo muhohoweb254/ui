@@ -1,7 +1,7 @@
 export const environment = {
     production: false,
-    'keycloak-server-url':'http://localhost:8083/keycloak/auth',
+    'keycloak-server-url':'http://keycloak.local/keycloak/auth',
     'realm-id':'school',
     'client-id':'students-service',
-    'base_url':'http://localhost:8080/api',
+    'base_url':'http://api.local/api',
 };

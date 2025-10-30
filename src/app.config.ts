@@ -18,8 +18,10 @@ import {
 import {environment} from './environments/environment';
 
 
+const baseUrl = environment.base_url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special regex characters
+
 const urlCondition = createInterceptorCondition<IncludeBearerTokenCondition>({
-    urlPattern: /^(http:\/\/localhost:8080)(\/.*)?$/i,
+    urlPattern: new RegExp(`^(${baseUrl})(\/.*)?$`, 'i'),
     bearerPrefix: 'Bearer'
 });
 
